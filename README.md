@@ -15,9 +15,7 @@
 
 > cd airi
 
-> go build main.go
-
-> mv main airixss
+> go build airixss.go
 
 > chmod +x airixss
 
