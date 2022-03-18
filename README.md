@@ -27,15 +27,15 @@
 
 
 ## - Usage & Explanation:
-  In Your recon process, you may find endpoints that can be vulnerable to xss,
+  * In Your recon process, you may find endpoints that can be vulnerable to xss,
   
   Ex: https://redacted.com/index.php?msg=SameValue
   
-  By replacing the "SameValue" to a xss payload, In order to see if there is reflection/vulnerable, it is when you use airixss
+  * By replacing the "SameValue" to a xss payload, In order to see if there is reflection/vulnerable, it is when you use airixss
   <br>
   <br>
   
-  Lets say you have a url and you want to test reflection:
+  * Lets say you have a url and you want to test reflection:
   <br>
   Airixss reads from stdin:
   ```echo 'https://redacted.com/index.php?user="><img src=x onerror=confirm(1)>' | airixss -payload 'confirm(1)'```
@@ -50,14 +50,11 @@
   
   **You can make use of Airixss with other tools such gau, gauplus, waybackurls, qsreplace and bhedak**
   <br>
-  Another examples of usage:
-  
+  * Another examples of usage:
   ```echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><img src=x onerror=prompt(1)>' | airixss -payload '<img src=x onerror=prompt(1)>'```
-  
   ```echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | bhedak '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)"```
 
 <br>
-
 
 
 ## This project is for educational and bug bounty porposes only! I do not support any illegal activities!.
