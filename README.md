@@ -29,7 +29,7 @@
 ## - Usage & Explanation:
   * In Your recon process, you may find endpoints that can be vulnerable to xss,
   
-  Ex: https://redacted.com/index.php?msg=SameValue
+    * Ex: https://redacted.com/index.php?msg=SameValue
   
   * By replacing the "SameValue" to a xss payload, In order to see if there is reflection/vulnerable, it is when you use airixss
   <br>
