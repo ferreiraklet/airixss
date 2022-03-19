@@ -13,7 +13,7 @@
 ```
 > git clone https://github.com/ferreiraklet/airixss.git
 
-> cd airi
+> cd airixss
 
 > go build airixss.go
 
