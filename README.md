@@ -11,6 +11,10 @@
 
 ## - Installation & Requirements:
 ```
+> go install github.com/ferreiraklet/airixss@latest
+
+OR
+
 > git clone https://github.com/ferreiraklet/airixss.git
 
 > cd airixss
