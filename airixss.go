@@ -30,16 +30,14 @@ func init() {
 			"",
 		}
 		
-		fmt.Fprintf(os.Stderr, strings.Join(help, "\n"))
-		fmt.Println(`		
-      __   _
-    _(  )_( )_
-   (_   _    _)
-  / /(_) (__)
- / / / / / /
-/ / / / / /
+		fmt.Println(`
+ _____ _     _
+|  _  |_|___|_|_ _ ___ ___
+|     | |  _| |_'_|_ -|_ -|
+|__|__|_|_| |_|_,_|___|___|
 
-It's Raining XSS!`)
+`)
+                fmt.Fprintf(os.Stderr, strings.Join(help, "\n"))
 	
 	}
 
