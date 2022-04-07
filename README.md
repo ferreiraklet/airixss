@@ -66,6 +66,10 @@ OR
     
     `echo "http://testphp.vulnweb.com" | waybackurls | anew | gf xss | qsreplace '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)" --proxy "http://yourproxy"`
     
+    You can specify more than one header, OBS: Be careful, the syntax must be exact the same, Ex:
+    
+   `echo "http://testphp.vulnweb.com" | waybackurls | anew | gf xss | qsreplace '"><svg onload=confirm(1)>' | airixss -payload "confirm(1) -H "Header1: Value1;Header2: value2"`
+    
     
 
 <br>
