@@ -7,7 +7,7 @@
 
 <h3 align="center">Airixss is for checking reflection in recon process to find xss vulnerable endpoints.</h3>
 
-<img src="https://cdn.discordapp.com/attachments/876919540682989609/961635959508729926/unknown.png">
+<img src="https://cdn.discordapp.com/attachments/876919540682989609/961636118829363220/unknown.png">
 
 ## - Installation & Requirements:
 ```
