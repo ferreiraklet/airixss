@@ -25,6 +25,7 @@ func init() {
                         "       -payload,         Reflection Flag, see readme for more information",
                         "       -H, --headers,    Headers",
                         "       --proxy,      	  Send traffic to a proxy",
+                        "       --only-poc        Show only vulnerable urls",
                         "       -h                Show This Help Message",
                         "",
                         "+=======================================================+",
@@ -36,7 +37,6 @@ func init() {
 |  _  |_|___|_|_ _ ___ ___
 |     | |  _| |_'_|_ -|_ -|
 |__|__|_|_| |_|_,_|___|___|
-
 `)
                 fmt.Fprintf(os.Stderr, strings.Join(help, "\n"))
 
@@ -51,6 +51,9 @@ func main() {
 
         var proxy string
         flag.StringVar(&proxy,"proxy", "","")
+
+        var poc bool
+        flag.BoolVar(&poc,"only-poc", false, "")
 
         var headers string
         flag.StringVar(&headers,"headers","","")
@@ -81,24 +84,24 @@ func main() {
                         defer wg.Done()
                         if proxy != ""{
                             if headers != ""{
-                                x := getParams(url, xsspayload, proxy, headers)
+                                x := getParams(url, xsspayload, proxy, headers, poc)
                                 if x != "ERROR" {
                                     fmt.Println(x)
                                                 }
                             }else{
-                                x := getParams(url,xsspayload, proxy, "0")
+                                x := getParams(url,xsspayload, proxy, "0", poc)
                                 if x != "ERROR" {
                                     fmt.Println(x)
                             }
                             }
                         }else{
                                 if headers != ""{
-                                    x := getParams(url,xsspayload, "0", headers)
+                                    x := getParams(url,xsspayload, "0", headers, poc)
                                     if x != "ERROR" {
                                         fmt.Println(x)
                                                     }
                                 }else{
-                                        x := getParams(url, xsspayload, "0", "0")
+                                        x := getParams(url, xsspayload, "0", "0", poc)
                                         if x != "ERROR" {
                                             fmt.Println(x)
                                                         }
@@ -113,7 +116,7 @@ func main() {
 
 }
 
-func getParams(urlt string, xssp string, proxy string, headers string) string {
+func getParams(urlt string, xssp string, proxy string, headers string, onlypoc bool) string {
 
         var trans = &http.Transport{
                 MaxIdleConns:      30,
@@ -167,6 +170,15 @@ func getParams(urlt string, xssp string, proxy string, headers string) string {
 
         page := string(body)
         check_xss := strings.Contains(page, xssp)
+
+        if onlypoc != false{
+            if check_xss != false{
+                return urlt
+            }else{
+                return "ERROR"
+            }
+        }
+
         if check_xss != false {
                 return "\033[1;31mVulnerable To XSS - "+urlt+"\033[0;0m"
         }else{
