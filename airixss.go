@@ -25,7 +25,7 @@ func init() {
                         "       -payload,         Reflection Flag, see readme for more information",
                         "       -H, --headers,    Headers",
                         "       --proxy,      	  Send traffic to a proxy",
-                        "       --only-poc        Show only vulnerable urls",
+                        "       --only-poc        Show only potentially vulnerable urls",
                         "       -h                Show This Help Message",
                         "",
                         "+=======================================================+",
