@@ -15,7 +15,6 @@
 
 - [Installation](#--installation--requirements)
 - [Usage](#--usage--explanation)
-  - [Single Urls](#stdin-single-urls)
   - [Adding Headers](#adding-headers)
   - [Using Proxy](#using-proxy)
   - [Using with other tools](#chaining-with-other-tools)
