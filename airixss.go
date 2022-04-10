@@ -18,7 +18,7 @@ import (
 func init() {
         flag.Usage = func() {
                 help := []string{
-                        "Airi XSS confirmer",
+                        "Airi XSS",
                         "",
                         "Usage:",
                         "+=======================================================+",
