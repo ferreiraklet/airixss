@@ -141,7 +141,12 @@ func getParams(urlt string, xssp string, proxy string, headers string, onlypoc b
                 Transport: trans,
                 Timeout:   3 * time.Second,
         }
-
+        
+        _, err := url.Parse(turl)
+        if err != nil{
+                return "ERROR"
+        }
+        
         if proxy != "0" {
             if p, err := url.Parse(proxy); err == nil {
                 trans.Proxy = http.ProxyURL(p)
