@@ -17,9 +17,17 @@
 - [Usage](#--usage--explanation)
   - [Adding Headers](#adding-headers)
   - [Using Proxy](#using-proxy)
+  - [Headless Mode](#headless-mode)
   - [Using with other tools](#chaining-with-other-tools)
 
 ## - Installation & Requirements:
+You need to install chromedp lib first ->
+```bash
+▶ go get -u github.com/chromedp/chromedp
+```
+
+Installing the tool ->
+
 Using go
 ```bash
 ▶ go install github.com/ferreiraklet/airixss@latest
@@ -46,7 +54,7 @@ In Your recon process, you may find endpoints that can be vulnerable to xss,
 
 <br>
   
-#### Stdin - Single urls
+### Stdin - Single urls
 
 ```bash
 echo 'https://redacted.com/index.php?user=%22%3E%3Csvg%20onload%3Dconfirm%281%29%3E' | airixss -payload "confirm(1)"
@@ -55,34 +63,51 @@ echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | bhedak '"><svg onload=
 ```
 In -payload flag, you need to specify a part of the payload used in url, -payload "value_will_be_checked_reflection"
   
-<br>
-
-#### Stdin - Read from File
+### Stdin - Read from File
 
 ```bash
 cat targets | airixss -payload "alert(1)"
 ```
 
-#### Adding Headers
+### Adding Headers
 
 Pay attention to the syntax!
 ```bash
 echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)" -H "header1: value1;Header2: value2"
 ```
 
-#### Using Proxy
+### Using Proxy
  
 ```bash
 echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)" --proxy "http://yourproxy"
 ```
+### Headless Mode
 
-#### Chaining with other tools
+**Headless mode is a "simulated" browser process that checks for the xss pop-up**
+
+It has much more accuracy, however, it is slower than normal method.
+
+**Usage**:
+ * **Attention** - Using more than 5 concurrencys may generate errors!
+```bash
+echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss --headless-mode -c 5
+
+echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss --headless-mode --only-poc -c 5
+```
+Using Proxy:
+```bash
+echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss --headless-mode -c 5 --proxy "http://yourproxy"
+```
+
+### Chaining with other tools
 ```bash
 echo "http://testphp.vulnweb.com" | waybackurls | anew | gf xss | qsreplace '"><svg onload=confirm(1)>' | airixss -payload "confirm(1) -H "Header1: Value1;Header2: value2"
 
 echo "http://testphp.vulnweb.com" | waybackurls | nilo | anew | gf xss | bhedak '"><svg onload=confirm(1)>' | airixss -payload "confirm(1) -H "Header1: Value1;Header2: value2" --proxy "http://yourproxy"
 
 echo "http://testphp.vulnweb.com" | waybackurls | nilo | anew | gf xss | bhedak '"><svg onload=confirm(1)>' | airixss -payload "confirm(1) -H "Header1: Value1;Header2: value2" --proxy "http://yourproxy"
+
+echo "http://testphp.vulnweb.com" | waybackurls | anew | gf xss | nilo | qsreplace '"><svg onload=confirm(1)>' | airixss --headless-mode --only-poc -c 5
 ```
     
 
@@ -91,6 +116,11 @@ echo "http://testphp.vulnweb.com" | waybackurls | nilo | anew | gf xss | bhedak 
 > [Nilo](https://github.com/ferreiraklet/nilo) - Checks if URL has status 200
 
 > [Jeeves](https://github.com/ferreiraklet/jeeves) - Time based blind Injection Scanner
+
+## Please, also check these => <br>
+> [GXSS](https://github.com/KathanP19/Gxss)
+
+> [Dalfox](https://github.com/hahwul/dalfox)
 
 
 If any error in the program, talk to me immediatly.
