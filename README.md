@@ -30,7 +30,7 @@ Installing the tool ->
 
 Using go
 ```bash
-▶ go get -u github.com/ferreiraklet/airixss@latest
+▶ go get -u github.com/ferreiraklet/airixss
 ```
 Using git clone
 ```bash
