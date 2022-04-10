@@ -24,6 +24,7 @@ func init() {
                         "+=======================================================+",
                         "       -payload,         Reflection Flag, see readme for more information",
                         "       -H, --headers,    Headers",
+                        "       -c                Set concurrency, Default: 50",
                         "       --proxy,      	  Send traffic to a proxy",
                         "       --only-poc        Show only potentially vulnerable urls",
                         "       -h                Show This Help Message",
@@ -46,6 +47,9 @@ func init() {
 
 func main() {
 
+        var concurrency int
+        flag.IntVar(&concurrency, "c", 50, "")
+
         var xsspayload string
         flag.StringVar(&xsspayload, "payload","","")
 
@@ -65,54 +69,58 @@ func main() {
                 fmt.Println("You need to specify a part of the payload used\nEx: -payload alert(1)\nExiting...")
                 os.Exit(1)
         }
-        var urls []string
+
         std := bufio.NewScanner(os.Stdin)
-        for std.Scan() {
-                var line string = std.Text()
-                hline := strings.Replace(line, "%2F", "/", -1)
-                line = hline
-                // fmt.Println(line)
 
-                urls = append(urls, line)
-
-        }
+        alvos := make(chan string)
         var wg sync.WaitGroup
-        for _, u := range urls {
-                wg.Add(1)
-                go func(url string) {
 
-                        defer wg.Done()
+        for i:=0;i<concurrency;i++ {
+            wg.Add(1)
+            go func(){
+                defer wg.Done()
+                for alvo := range alvos{
+                
+
                         if proxy != ""{
                             if headers != ""{
-                                x := getParams(url, xsspayload, proxy, headers, poc)
+                                x := getParams(alvo, xsspayload, proxy, headers, poc)
                                 if x != "ERROR" {
                                     fmt.Println(x)
                                                 }
                             }else{
-                                x := getParams(url,xsspayload, proxy, "0", poc)
+                                x := getParams(alvo,xsspayload, proxy, "0", poc)
                                 if x != "ERROR" {
                                     fmt.Println(x)
                             }
                             }
                         }else{
                                 if headers != ""{
-                                    x := getParams(url,xsspayload, "0", headers, poc)
+                                    x := getParams(alvo, xsspayload, "0", headers, poc)
                                     if x != "ERROR" {
                                         fmt.Println(x)
                                                     }
                                 }else{
-                                        x := getParams(url, xsspayload, "0", "0", poc)
+                                        x := getParams(alvo, xsspayload, "0", "0", poc)
                                         if x != "ERROR" {
                                             fmt.Println(x)
                                                         }
                                     }
 
                             }
+                        }
 
-                }(u)
+                }()
+        
+    }
+
+    for std.Scan() {
+        var line string = std.Text()
+        alvos <- line
+
         }
-
-        wg.Wait()
+    close(alvos)
+    wg.Wait()
 
 }
 
