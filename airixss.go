@@ -10,6 +10,9 @@ import (
         "net/http"
         "net/url"
         "os"
+        "context"
+        "github.com/chromedp/cdproto/page"
+        "github.com/chromedp/chromedp"
         "strings"
         "sync"
         "time"
@@ -24,9 +27,10 @@ func init() {
                         "+=======================================================+",
                         "       -payload,         Reflection Flag, see readme for more information",
                         "       -H, --headers,    Headers",
-                        "       -c                Set concurrency, Default: 50",
+                        "       -c                Set Concurrency, Default: 50",
                         "       --proxy,      	  Send traffic to a proxy",
                         "       --only-poc        Show only potentially vulnerable urls",
+                        "       --headless-mode   Headless mode ( experimental ) please check readme",
                         "       -h                Show This Help Message",
                         "",
                         "+=======================================================+",
@@ -48,16 +52,19 @@ func init() {
 func main() {
 
         var concurrency int
-        flag.IntVar(&concurrency, "c", 50, "")
+        flag.IntVar(&concurrency, "c", 50,"")
 
         var xsspayload string
         flag.StringVar(&xsspayload, "payload","","")
 
         var proxy string
-        flag.StringVar(&proxy,"proxy", "","")
+        flag.StringVar(&proxy,"proxy", "0","")
 
         var poc bool
         flag.BoolVar(&poc,"only-poc", false, "")
+
+        var headless bool
+        flag.BoolVar(&headless, "headless-mode", false, "")
 
         var headers string
         flag.StringVar(&headers,"headers","","")
@@ -65,43 +72,41 @@ func main() {
 
         flag.Parse()
 
-        if xsspayload == "" {
-                fmt.Println("You need to specify a part of the payload used\nEx: -payload alert(1)\nExiting...")
-                os.Exit(1)
-        }
-
         std := bufio.NewScanner(os.Stdin)
+        targets := make(chan string)
 
-        alvos := make(chan string)
         var wg sync.WaitGroup
-
         for i:=0;i<concurrency;i++ {
-            wg.Add(1)
-            go func(){
-                defer wg.Done()
-                for alvo := range alvos{
-                
+                wg.Add(1)
+                go func() {
+                        defer wg.Done()
+                        for v := range targets{
 
-                        if proxy != ""{
-                            if headers != ""{
-                                x := getParams(alvo, xsspayload, proxy, headers, poc)
-                                if x != "ERROR" {
-                                    fmt.Println(x)
-                                                }
+                            if headless != false{
+                                h := HeadlessMode(v, poc, proxy)
+                                if h != "not"{fmt.Println(h)}
                             }else{
-                                x := getParams(alvo,xsspayload, proxy, "0", poc)
-                                if x != "ERROR" {
-                                    fmt.Println(x)
-                            }
-                            }
-                        }else{
+
+                            if proxy != ""{
                                 if headers != ""{
-                                    x := getParams(alvo, xsspayload, "0", headers, poc)
+                                    x := getParams(v, xsspayload, proxy, headers, poc)
+                                    if x != "ERROR" {
+                                        fmt.Println(x)
+                                                }
+                                }else{
+                                    x := getParams(v,xsspayload, proxy, "0", poc)
+                                    if x != "ERROR" {
+                                        fmt.Println(x)
+                                        }
+                                        }
+                            }else{
+                                if headers != ""{
+                                    x := getParams(v,xsspayload, "0", headers, poc)
                                     if x != "ERROR" {
                                         fmt.Println(x)
                                                     }
                                 }else{
-                                        x := getParams(alvo, xsspayload, "0", "0", poc)
+                                        x := getParams(v, xsspayload, "0", "0", poc)
                                         if x != "ERROR" {
                                             fmt.Println(x)
                                                         }
@@ -109,18 +114,18 @@ func main() {
 
                             }
                         }
+                    }
 
                 }()
-        
-    }
+        }
 
-    for std.Scan() {
-        var line string = std.Text()
-        alvos <- line
+        for std.Scan() {
+            var line string = std.Text()
+            targets <- line
 
         }
-    close(alvos)
-    wg.Wait()
+        close(targets)
+        wg.Wait()
 
 }
 
@@ -137,16 +142,16 @@ func getParams(urlt string, xssp string, proxy string, headers string, onlypoc b
                 }).DialContext,
         }
 
+        _, errx := url.Parse(urlt)
+        if errx != nil {
+            return "not"
+         }
+
         client := &http.Client{
                 Transport: trans,
                 Timeout:   3 * time.Second,
         }
-        
-        _, err := url.Parse(urlt)
-        if err != nil{
-                return "ERROR"
-        }
-        
+
         if proxy != "0" {
             if p, err := url.Parse(proxy); err == nil {
                 trans.Proxy = http.ProxyURL(p)
@@ -198,4 +203,126 @@ func getParams(urlt string, xssp string, proxy string, headers string, onlypoc b
                 return "\033[1;30mNot Vulnerable to XSS - "+urlt+"\033[0;0m"
         }
 
+}
+
+
+
+func HeadlessMode(urlt string, poctype bool, proxyserver string) string {
+
+    if proxyserver == "0"{
+
+        _, errx := url.Parse(urlt)
+        if errx != nil {
+            return "not"
+         }
+        xssCheck := false
+
+
+        ctx, cancel := chromedp.NewContext(
+            context.Background(),
+                )
+        defer cancel()
+
+
+        ctx, cancel = context.WithTimeout(ctx, 8*time.Second)
+        defer cancel()
+
+        chromedp.ListenTarget(ctx, func(ev interface{}) {
+                if _, ok := ev.(*page.EventJavascriptDialogOpening); ok {
+                        
+                        xssCheck = true
+                        cancel()
+                }else{
+                                go func() {
+                                        chromedp.Run(ctx, page.HandleJavaScriptDialog(true))
+                                }()
+                        }
+                })
+
+
+
+        err := chromedp.Run(ctx,
+                chromedp.Navigate(urlt),
+        )
+
+        if err != nil {
+            //
+        }
+
+        if poctype != false{
+            if xssCheck != false{
+                return urlt
+            }else{
+                return "not"
+            }
+        }
+
+        if xssCheck != false{
+                return "\033[1;31m[Critical] XSS Found - "+urlt+"\033[0;0m"
+        }else{
+                return "\033[1;30mNot Vulnerable to XSS - "+urlt+"\033[0;0m"
+        }
+
+
+    }else{
+
+        _, errx := url.Parse(urlt)
+        if errx != nil {
+            return "not"
+         }
+        xssCheck := false
+
+        o := append(chromedp.DefaultExecAllocatorOptions[:],
+            chromedp.ProxyServer(proxyserver), 
+            )
+        
+        cx, cancel := chromedp.NewExecAllocator(context.Background(), o...)
+        defer cancel()
+
+        ctx, cancel := chromedp.NewContext(cx)
+        defer cancel()
+
+       
+        ctx, cancel = context.WithTimeout(ctx, 8*time.Second)
+        defer cancel()
+
+        chromedp.ListenTarget(ctx, func(ev interface{}) {
+        if _, ok := ev.(*page.EventJavascriptDialogOpening); ok {     
+                xssCheck = true
+                cancel()
+        }else {
+                go func() {
+                    chromedp.Run(ctx, page.HandleJavaScriptDialog(true))
+                                }()
+                        }
+                })
+
+
+
+        err := chromedp.Run(ctx,
+                chromedp.Navigate(urlt),
+        )
+        
+        if err != nil {
+            //
+        }
+
+
+        if poctype != false{
+            if xssCheck != false{
+                return urlt
+            }else{
+                return "not"
+            }
+        }
+
+        if xssCheck != false{
+                return "\033[1;31m[Critical] XSS Found - "+urlt+"\033[0;0m"
+        }else{
+                return "\033[1;30mNot Vulnerable to XSS - "+urlt+"\033[0;0m"
+        }
+
+
+
+    }
 }
