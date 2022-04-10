@@ -142,7 +142,7 @@ func getParams(urlt string, xssp string, proxy string, headers string, onlypoc b
                 Timeout:   3 * time.Second,
         }
         
-        _, err := url.Parse(turl)
+        _, err := url.Parse(urlt)
         if err != nil{
                 return "ERROR"
         }
