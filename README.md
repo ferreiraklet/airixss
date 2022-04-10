@@ -49,7 +49,7 @@ In Your recon process, you may find endpoints that can be vulnerable to xss,
 #### Stdin - Single urls
 
 ```bash
-echo 'https://redacted.com/index.php?user="><img src=x onerror=confirm(1)>' | airixss -payload "confirm(1)"
+echo 'https://redacted.com/index.php?user=%22%3E%3Csvg%20onload%3Dconfirm%281%29%3E' | airixss -payload "confirm(1)"
 
 echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | bhedak '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)"
 ```
