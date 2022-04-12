@@ -86,6 +86,7 @@ echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onlo
 **Headless mode is a "simulated" browser process that checks for the xss pop-up**
 
 It has much more accuracy, however, it is slower than normal method.
+( experimental mode )
 
 **Usage**:
  * **Attention** - Using more than 5 concurrencys may generate errors!
