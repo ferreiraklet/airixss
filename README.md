@@ -23,14 +23,14 @@
 ## - Installation & Requirements:
 You need to install chromedp lib first ->
 ```bash
-▶ go get -u github.com/chromedp/chromedp
+▶ go install github.com/chromedp/chromedp@latest
 ```
 
 Installing the tool ->
 
 Using go
 ```bash
-▶ go get -u github.com/ferreiraklet/airixss
+▶ go install github.com/ferreiraklet/airixss@latest
 ```
 Using git clone
 ```bash
