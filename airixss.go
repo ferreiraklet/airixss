@@ -24,16 +24,16 @@ func init() {
                         "Airi XSS",
                         "",
                         "Usage:",
-                        "+=======================================================+",
-                        "       -payload,         Reflection Flag, see readme for more information",
-                        "       -H, --headers,    Headers",
-                        "       -c                Set Concurrency, Default: 50",
-                        "       --proxy,      	  Send traffic to a proxy",
-                        "       --only-poc        Show only potentially vulnerable urls",
-                        "       --headless-mode   Headless mode ( experimental ) please check readme",
-                        "       -h                Show This Help Message",
-                        "",
-                        "+=======================================================+",
+                        "+====================================================================================+",
+                        "|       -p, -payload,         Reflection Flag, see readme for more information",
+                        "|       -H, --headers,        Headers",
+                        "|       -c                    Set Concurrency, Default: 50",
+                        "|       -x, --proxy,          Send traffic to a proxy",
+                        "|       -s, --only-poc        Show only potentially vulnerable urls",
+                        "|       -hm, --headless-mode  Headless mode ( experimental ) please check readme",
+                        "|       -h                    Show This Help Message",
+                        "|",
+                        "+====================================================================================+",
                         "",
                 }
 
@@ -55,20 +55,24 @@ func main() {
         flag.IntVar(&concurrency, "c", 50,"")
 
         var xsspayload string
-        flag.StringVar(&xsspayload, "payload","","")
+        flag.StringVar(&xsspayload, "payload", "alert(1)", "")
+        flag.StringVar(&xsspayload, "p", "alert(1)", "")
 
         var proxy string
         flag.StringVar(&proxy,"proxy", "0","")
+        flag.StringVar(&proxy,"x", "0","")
 
         var poc bool
         flag.BoolVar(&poc,"only-poc", false, "")
+        flag.BoolVar(&poc,"s", false, "")
 
         var headless bool
         flag.BoolVar(&headless, "headless-mode", false, "")
+        flag.BoolVar(&headless, "hm", false, "")
 
         var headers string
-        flag.StringVar(&headers,"headers","","")
-        flag.StringVar(&headers,"H","","")
+        flag.StringVar(&headers,"headers", "0", "")
+        flag.StringVar(&headers,"H", "0", "")
 
         flag.Parse()
 
@@ -85,36 +89,18 @@ func main() {
                             if headless != false{
                                 h := HeadlessMode(v, poc, proxy)
                                 if h != "not"{fmt.Println(h)}
+
                             }else{
 
-                            if proxy != ""{
-                                if headers != ""{
-                                    x := getParams(v, xsspayload, proxy, headers, poc)
-                                    if x != "ERROR" {
+                                x := getParams(v, xsspayload, proxy, headers, poc)
+                                if x != "ERROR" {
                                         fmt.Println(x)
                                                 }
-                                }else{
-                                    x := getParams(v,xsspayload, proxy, "0", poc)
-                                    if x != "ERROR" {
-                                        fmt.Println(x)
-                                        }
-                                        }
-                            }else{
-                                if headers != ""{
-                                    x := getParams(v,xsspayload, "0", headers, poc)
-                                    if x != "ERROR" {
-                                        fmt.Println(x)
-                                                    }
-                                }else{
-                                        x := getParams(v, xsspayload, "0", "0", poc)
-                                        if x != "ERROR" {
-                                            fmt.Println(x)
-                                                        }
-                                    }
+                                    
 
                             }
                         }
-                    }
+                    
 
                 }()
         }
@@ -165,10 +151,10 @@ func getParams(urlt string, xssp string, proxy string, headers string, onlypoc b
                     for _, q := range parts{
                         separatedHeader := strings.Split(q,":")
                         res.Header.Set(separatedHeader[0],separatedHeader[1])
-        }
-        }else{
-            sHeader := strings.Split(headers,":")
-            res.Header.Set(sHeader[0], sHeader[1])
+                }
+                }else{
+                        sHeader := strings.Split(headers,":")
+                        res.Header.Set(sHeader[0], sHeader[1])
 }
 }
 
