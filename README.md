@@ -8,7 +8,7 @@
 
 <h3 align="center">Airixss is for checking reflection in recon process to find possible xss vulnerable endpoints.</h3>
 
-<img src="https://cdn.discordapp.com/attachments/876919540682989609/962814461650018354/unknown.png">
+<img src="https://cdn.discordapp.com/attachments/686610076575858701/975905092421165066/unknown.png">
 
 
 ## Contents:
@@ -59,7 +59,7 @@ In Your recon process, you may find endpoints that can be vulnerable to xss,
 ```bash
 echo 'https://redacted.com/index.php?user=%22%3E%3Csvg%20onload%3Dconfirm%281%29%3E' | airixss -payload "confirm(1)"
 
-echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | bhedak '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)"
+echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | bhedak '"><svg onload=confirm(1)>' | airixss -p "confirm(1)"
 ```
 In -payload flag, you need to specify a part of the payload used in url, -payload "value_will_be_checked_reflection"
   
@@ -73,13 +73,13 @@ cat targets | airixss -payload "alert(1)"
 
 Pay attention to the syntax!
 ```bash
-echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)" -H "header1: value1;Header2: value2"
+echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss -p "confirm(1)" -H "header1: value1;Header2: value2"
 ```
 
 ### Using Proxy
  
 ```bash
-echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss -payload "confirm(1)" --proxy "http://yourproxy"
+echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss -p "confirm(1)" -x "http://yourproxy"
 ```
 ### Headless Mode
 
@@ -93,22 +93,22 @@ It has much more accuracy, however, it is slower than normal method.
 ```bash
 echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss --headless-mode -c 5
 
-echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss --headless-mode --only-poc -c 5
+echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss -hm -s -c 5
 ```
 Using Proxy:
 ```bash
-echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss --headless-mode -c 5 --proxy "http://yourproxy"
+echo "http://testphp.vulnweb.com:80/hpp/index.php?pp=x" | qsreplace '"><svg onload=confirm(1)>' | airixss -hm -c 5 -x "http://yourproxy"
 ```
 
 ### Chaining with other tools
 ```bash
-echo "http://testphp.vulnweb.com" | waybackurls | anew | gf xss | qsreplace '"><svg onload=confirm(1)>' | airixss -payload "confirm(1) -H "Header1: Value1;Header2: value2"
+echo "http://testphp.vulnweb.com" | waybackurls | anew | gf xss | qsreplace '"><svg onload=confirm(1)>' | airixss -p "confirm(1)" -H "Header1: Value1;Header2: value2"
 
-echo "http://testphp.vulnweb.com" | waybackurls | nilo | anew | gf xss | bhedak '"><svg onload=confirm(1)>' | airixss -payload "confirm(1) -H "Header1: Value1;Header2: value2" --proxy "http://yourproxy"
+echo "http://testphp.vulnweb.com" | waybackurls | nilo | anew | gf xss | urldedupe -qs | bhedak '"><svg onload=confirm(1)>' | airixss -p "confirm(1)" -H "Header1: Value1;Header2: value2" --proxy "http://yourproxy"
 
-echo "http://testphp.vulnweb.com" | waybackurls | nilo | anew | gf xss | bhedak '"><svg onload=confirm(1)>' | airixss -payload "confirm(1) -H "Header1: Value1;Header2: value2" --proxy "http://yourproxy"
+echo "http://testphp.vulnweb.com" | waybackurls | nilo | anew | gf xss | qsreplace -a | bhedak '"><svg onload=confirm(1)>' | airixss -p "confirm(1)" -H "Header1: Value1;Header2: value2" -x "http://yourproxy"
 
-echo "http://testphp.vulnweb.com" | waybackurls | anew | gf xss | nilo | qsreplace '"><svg onload=confirm(1)>' | airixss --headless-mode --only-poc -c 5
+echo "http://testphp.vulnweb.com" | waybackurls | anew | gf xss | uro | nilo | qsreplace '"><svg onload=confirm(1)>' | airixss -hm -s -c 5
 ```
     
 
