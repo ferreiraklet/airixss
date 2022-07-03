@@ -49,14 +49,29 @@ func init() {
 
 }
 
+
+type customheaders []string
+
+func (m *customheaders) String() string {
+ return "This message is for Setting Headers"
+}
+
+func (h *customheaders) Set(val string) error {
+ *h = append(*h, val)
+ return nil
+}
+
+
+var headers customheaders
+
 func main() {
 
         var concurrency int
         flag.IntVar(&concurrency, "c", 50,"")
 
         var xsspayload string
-        flag.StringVar(&xsspayload, "payload", "alert(1)", "")
-        flag.StringVar(&xsspayload, "p", "alert(1)", "")
+        flag.StringVar(&xsspayload, "payload", "", "")
+        flag.StringVar(&xsspayload, "p", "", "")
 
         var proxy string
         flag.StringVar(&proxy,"proxy", "0","")
@@ -70,14 +85,16 @@ func main() {
         flag.BoolVar(&headless, "headless-mode", false, "")
         flag.BoolVar(&headless, "hm", false, "")
 
-        var headers string
-        flag.StringVar(&headers,"headers", "0", "")
-        flag.StringVar(&headers,"H", "0", "")
+        // Headers flag
+        flag.Var(&headers, "headers", "")
+        flag.Var(&headers, "H", "")
 
         flag.Parse()
 
+        visto := make(map[string]bool)
         std := bufio.NewScanner(os.Stdin)
         targets := make(chan string)
+
 
         var wg sync.WaitGroup
         for i:=0;i<concurrency;i++ {
@@ -91,23 +108,32 @@ func main() {
                                 if h != "not"{fmt.Println(h)}
 
                             }else{
-
-                                x := getParams(v, xsspayload, proxy, headers, poc)
-                                if x != "ERROR" {
-                                        fmt.Println(x)
+                                if xsspayload != ""{
+                                        x := xss(v, xsspayload, proxy, poc)
+                                        if x != "ERROR" {
+                                                fmt.Println(x)
+                                                        }
+                                }else{
+                                                        x := xssDefault(v, xsspayload, proxy, poc)
+                                                        if x != "ERROR"{
+                                                                fmt.Println(x)
+                                                        }
                                                 }
-                                    
+
 
                             }
                         }
-                    
+
 
                 }()
         }
 
         for std.Scan() {
             var line string = std.Text()
-            targets <- line
+            if visto[line] != true{
+                targets <- line
+            }
+            visto[line] = true
 
         }
         close(targets)
@@ -115,7 +141,7 @@ func main() {
 
 }
 
-func getParams(urlt string, xssp string, proxy string, headers string, onlypoc bool) string {
+func xss(urlt string, xssp string, proxy string, onlypoc bool) string {
 
         var trans = &http.Transport{
                 MaxIdleConns:      30,
@@ -128,15 +154,20 @@ func getParams(urlt string, xssp string, proxy string, headers string, onlypoc b
                 }).DialContext,
         }
 
-        _, errx := url.Parse(urlt)
-        if errx != nil {
-            return "not"
-         }
 
         client := &http.Client{
                 Transport: trans,
                 Timeout:   3 * time.Second,
+                CheckRedirect: func(req *http.Request, via []*http.Request) error {
+                        return http.ErrUseLastResponse
+                                },
         }
+
+        _, errx := url.Parse(urlt)
+        if errx != nil {
+            return "ERROR"
+        }
+
 
         if proxy != "0" {
             if p, err := url.Parse(proxy); err == nil {
@@ -145,18 +176,12 @@ func getParams(urlt string, xssp string, proxy string, headers string, onlypoc b
 
         res, err := http.NewRequest("GET", urlt, nil)
         res.Header.Set("Connection", "close")
-        if headers != "0"{
-            if strings.Contains(headers, ";"){
-                    parts := strings.Split(headers, ";")
-                    for _, q := range parts{
-                        separatedHeader := strings.Split(q,":")
-                        res.Header.Set(separatedHeader[0],separatedHeader[1])
-                }
-                }else{
-                        sHeader := strings.Split(headers,":")
-                        res.Header.Set(sHeader[0], sHeader[1])
-}
-}
+
+        for _, v := range headers{
+                s := strings.SplitN(v, ":", 2)
+                res.Header.Set(s[0], s[1])
+        }
+
 
 
         resp, err := client.Do(res)
@@ -192,6 +217,99 @@ func getParams(urlt string, xssp string, proxy string, headers string, onlypoc b
 }
 
 
+func xssDefault(urlt string, xssp string, proxy string, onlypoc bool) string {
+
+
+
+        var trans = &http.Transport{
+                MaxIdleConns:      30,
+                IdleConnTimeout:   time.Second,
+                DisableKeepAlives: true,
+                TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
+                DialContext: (&net.Dialer{
+                        Timeout:   3 * time.Second,
+                        KeepAlive: time.Second,
+                }).DialContext,
+        }
+
+
+        client := &http.Client{
+                Transport: trans,
+                Timeout:   3 * time.Second,
+                CheckRedirect: func(req *http.Request, via []*http.Request) error {
+                        return http.ErrUseLastResponse
+                                },
+        }
+        //fmt.Println("TESTT")
+        u, errx := url.Parse(urlt)
+        if errx != nil {
+            return "ERROR"
+        }
+
+        defaultPayload := `"><img src=x onerror=alert(1)>`
+        q, err := url.ParseQuery(u.RawQuery)
+        if err != nil{
+                return "ERROR"
+        }
+        for x, _ := range q{
+                //fmt.Println(x)
+                q.Set(x, defaultPayload)
+        }
+
+
+        u.RawQuery = q.Encode()
+        urlt = u.String()
+        //fmt.Println(urlt)
+        xssp = defaultPayload
+        //fmt.Printf("url: %s\n", u.String())
+
+
+        if proxy != "0" {
+            if p, err := url.Parse(proxy); err == nil {
+                trans.Proxy = http.ProxyURL(p)
+        }}
+
+        res, err := http.NewRequest("GET", urlt, nil)
+        res.Header.Set("Connection", "close")
+
+        for _, v := range headers{
+                s := strings.SplitN(v, ":", 2)
+                res.Header.Set(s[0], s[1])
+        }
+
+
+
+        resp, err := client.Do(res)
+        // res.Header.Set("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.71 Safari/537.36")
+
+        if err != nil {
+                return "ERROR"
+        }
+        defer resp.Body.Close()
+
+        body, err := ioutil.ReadAll(resp.Body)
+        if err != nil {
+                return "ERROR"
+        }
+
+        page := string(body)
+        check_xss := strings.Contains(page, xssp)
+
+        if onlypoc != false{
+            if check_xss != false{
+                return urlt
+            }else{
+                return "ERROR"
+            }
+        }
+
+        if check_xss != false {
+                return "\033[1;31mVulnerable To XSS - "+urlt+"\033[0;0m"
+        }else{
+                return "\033[1;30mNot Vulnerable to XSS - "+urlt+"\033[0;0m"
+        }
+
+}
 
 func HeadlessMode(urlt string, poctype bool, proxyserver string) string {
 
@@ -215,7 +333,7 @@ func HeadlessMode(urlt string, poctype bool, proxyserver string) string {
 
         chromedp.ListenTarget(ctx, func(ev interface{}) {
                 if _, ok := ev.(*page.EventJavascriptDialogOpening); ok {
-                        
+
                         xssCheck = true
                         cancel()
                 }else{
@@ -259,21 +377,21 @@ func HeadlessMode(urlt string, poctype bool, proxyserver string) string {
         xssCheck := false
 
         o := append(chromedp.DefaultExecAllocatorOptions[:],
-            chromedp.ProxyServer(proxyserver), 
+            chromedp.ProxyServer(proxyserver),
             )
-        
+
         cx, cancel := chromedp.NewExecAllocator(context.Background(), o...)
         defer cancel()
 
         ctx, cancel := chromedp.NewContext(cx)
         defer cancel()
 
-       
+
         ctx, cancel = context.WithTimeout(ctx, 8*time.Second)
         defer cancel()
 
         chromedp.ListenTarget(ctx, func(ev interface{}) {
-        if _, ok := ev.(*page.EventJavascriptDialogOpening); ok {     
+        if _, ok := ev.(*page.EventJavascriptDialogOpening); ok {
                 xssCheck = true
                 cancel()
         }else {
@@ -288,7 +406,7 @@ func HeadlessMode(urlt string, poctype bool, proxyserver string) string {
         err := chromedp.Run(ctx,
                 chromedp.Navigate(urlt),
         )
-        
+
         if err != nil {
             //
         }
