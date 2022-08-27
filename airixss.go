@@ -74,15 +74,11 @@ func main() {
         flag.StringVar(&proxy,"proxy", "0","")
         flag.StringVar(&proxy,"x", "0","")
 
-		//payloadfile -pf
+	//payloadfile -pf
 
         var poc bool
         flag.BoolVar(&poc,"only-poc", false, "")
         flag.BoolVar(&poc,"s", false, "")
-
-        var headless bool
-        flag.BoolVar(&headless, "headless-mode", false, "")
-        flag.BoolVar(&headless, "hm", false, "")
 
         // Headers flag
         flag.Var(&headers, "headers", "")
@@ -102,11 +98,7 @@ func main() {
                         defer wg.Done()
                         for v := range targets{
 
-                            //if headless != false{
-                                //h := HeadlessMode(v, poc, proxy)
-                                //if h != "not"{fmt.Println(h)}
-
-                            //}else{
+                            
                                 if xsspayload != ""{
                                         x := xss(v, xsspayload, proxy, poc)
                                         if x != "ERROR" {
