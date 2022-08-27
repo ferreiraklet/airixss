@@ -10,10 +10,11 @@ import (
         "net/http"
         "net/url"
         "os"
-        "context"
-        "github.com/chromedp/cdproto/page"
-        "github.com/chromedp/chromedp"
+        //"context"
+        //"github.com/chromedp/cdproto/page"
+        //"github.com/chromedp/chromedp"
         "strings"
+	"regexp"
         "sync"
         "time"
 )
@@ -77,6 +78,8 @@ func main() {
         flag.StringVar(&proxy,"proxy", "0","")
         flag.StringVar(&proxy,"x", "0","")
 
+		//payloadfile -pf
+
         var poc bool
         flag.BoolVar(&poc,"only-poc", false, "")
         flag.BoolVar(&poc,"s", false, "")
@@ -103,11 +106,11 @@ func main() {
                         defer wg.Done()
                         for v := range targets{
 
-                            if headless != false{
-                                h := HeadlessMode(v, poc, proxy)
-                                if h != "not"{fmt.Println(h)}
+                            //if headless != false{
+                                //h := HeadlessMode(v, poc, proxy)
+                                //if h != "not"{fmt.Println(h)}
 
-                            }else{
+                            //}else{
                                 if xsspayload != ""{
                                         x := xss(v, xsspayload, proxy, poc)
                                         if x != "ERROR" {
@@ -121,7 +124,7 @@ func main() {
                                                 }
 
 
-                            }
+                            //}
                         }
 
 
@@ -198,22 +201,43 @@ func xss(urlt string, xssp string, proxy string, onlypoc bool) string {
         }
 
         page := string(body)
-        check_xss := strings.Contains(page, xssp)
+        var check_xss bool
+	xssp = regexp.QuoteMeta(xssp)
+
+	
+        
+                //fmt.Println(x)
+				//x == param name
+        regex := xssp
+        match, _ := regexp.MatchString(regex, page)
+
+        if match == true{
+                check_xss = true
+        }else{
+                check_xss = false
+        }
 
         if onlypoc != false{
-            if check_xss != false{
-                return urlt
-            }else{
-                return "ERROR"
-            }
+                if check_xss != false{
+                        return urlt
+                }else{
+                        return "ERROR"
+                }
         }
 
         if check_xss != false {
-                return "\033[1;31mVulnerable To XSS - "+urlt+"\033[0;0m"
+                if onlypoc == false{
+                        return "\033[1;31mVulnerable - "+urlt+"\033[0;0m"
+                }
         }else{
-                return "\033[1;30mNot Vulnerable to XSS - "+urlt+"\033[0;0m"
+                if onlypoc == false{
+                        return "\033[1;30mNot Vulnerable - "+urlt+"\033[0;0m"
+                }
         }
-
+                
+        
+	return "ERROR"
+        
 }
 
 
@@ -260,7 +284,7 @@ func xssDefault(urlt string, xssp string, proxy string, onlypoc bool) string {
         u.RawQuery = q.Encode()
         urlt = u.String()
         //fmt.Println(urlt)
-        xssp = defaultPayload
+        xssp = regexp.QuoteMeta(defaultPayload)
         //fmt.Printf("url: %s\n", u.String())
 
 
@@ -293,140 +317,41 @@ func xssDefault(urlt string, xssp string, proxy string, onlypoc bool) string {
         }
 
         page := string(body)
-        check_xss := strings.Contains(page, xssp)
+
+        var check_xss bool
+
+	
+			//fmt.Println(x)
+			//x == param name
+        regex := xssp
+        match, _ := regexp.MatchString(regex, page)
+
+        if match == true{
+                check_xss = true
+        }else{
+                check_xss = false
+        }
 
         if onlypoc != false{
-            if check_xss != false{
-                return urlt
-            }else{
-                return "ERROR"
-            }
-        }
-
-        if check_xss != false {
-                return "\033[1;31mVulnerable To XSS - "+urlt+"\033[0;0m"
-        }else{
-                return "\033[1;30mNot Vulnerable to XSS - "+urlt+"\033[0;0m"
-        }
-
-}
-
-func HeadlessMode(urlt string, poctype bool, proxyserver string) string {
-
-    if proxyserver == "0"{
-
-        _, errx := url.Parse(urlt)
-        if errx != nil {
-            return "not"
-         }
-        xssCheck := false
-
-
-        ctx, cancel := chromedp.NewContext(
-            context.Background(),
-                )
-        defer cancel()
-
-
-        ctx, cancel = context.WithTimeout(ctx, 8*time.Second)
-        defer cancel()
-
-        chromedp.ListenTarget(ctx, func(ev interface{}) {
-                if _, ok := ev.(*page.EventJavascriptDialogOpening); ok {
-
-                        xssCheck = true
-                        cancel()
+                if check_xss != false{
+                        return urlt
                 }else{
-                                go func() {
-                                        chromedp.Run(ctx, page.HandleJavaScriptDialog(true))
-                                }()
-                        }
-                })
-
-
-
-        err := chromedp.Run(ctx,
-                chromedp.Navigate(urlt),
-        )
-
-        if err != nil {
-            //
+                        return "ERROR"
+                }
         }
+        
 
-        if poctype != false{
-            if xssCheck != false{
-                return urlt
-            }else{
-                return "not"
-            }
-        }
-
-        if xssCheck != false{
-                return "\033[1;31m[Critical] XSS Found - "+urlt+"\033[0;0m"
+        if check_xss != false{
+                if onlypoc == false{
+                        return "\033[1;31mVulnerable - "+urlt+"\033[0;0m"
+                }
         }else{
-                return "\033[1;30mNot Vulnerable to XSS - "+urlt+"\033[0;0m"
+                if onlypoc == false{
+                        return "\033[1;30mNot Vulnerable - "+urlt+"\033[0;0m"
+                }
         }
+			
+	
+	return "ERROR"
 
-
-    }else{
-
-        _, errx := url.Parse(urlt)
-        if errx != nil {
-            return "not"
-         }
-        xssCheck := false
-
-        o := append(chromedp.DefaultExecAllocatorOptions[:],
-            chromedp.ProxyServer(proxyserver),
-            )
-
-        cx, cancel := chromedp.NewExecAllocator(context.Background(), o...)
-        defer cancel()
-
-        ctx, cancel := chromedp.NewContext(cx)
-        defer cancel()
-
-
-        ctx, cancel = context.WithTimeout(ctx, 8*time.Second)
-        defer cancel()
-
-        chromedp.ListenTarget(ctx, func(ev interface{}) {
-        if _, ok := ev.(*page.EventJavascriptDialogOpening); ok {
-                xssCheck = true
-                cancel()
-        }else {
-                go func() {
-                    chromedp.Run(ctx, page.HandleJavaScriptDialog(true))
-                                }()
-                        }
-                })
-
-
-
-        err := chromedp.Run(ctx,
-                chromedp.Navigate(urlt),
-        )
-
-        if err != nil {
-            //
-        }
-
-
-        if poctype != false{
-            if xssCheck != false{
-                return urlt
-            }else{
-                return "not"
-            }
-        }
-
-        if xssCheck != false{
-                return "\033[1;31m[Critical] XSS Found - "+urlt+"\033[0;0m"
-        }else{
-                return "\033[1;30mNot Vulnerable to XSS - "+urlt+"\033[0;0m"
-        }
-
-
-
-    }
 }
