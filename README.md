@@ -53,7 +53,7 @@ In Your recon process, you may find endpoints that can be vulnerable to xss,
 
 **Attention**
 
-**If you want to test xss, then, for better results, please provide the full payload in -p tag, Ex: -p '"><svg onload=confirm(1)>'**
+**If you want to test xss, then, for better results, please provide the full payload in -p tag, Ex: -p ```'"><svg onload=confirm(1)>'```**
 
 ```bash
 echo 'https://redacted.com/index.php?user=%22%3E%3Csvg%20onload%3Dconfirm%281%29%3E' | airixss -payload '"><svg onload=confirm(1)>'
