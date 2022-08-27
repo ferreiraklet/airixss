@@ -65,7 +65,7 @@ In -payload flag, you need to specify a part of the payload used in url, -payloa
 ### Stdin - Read from File
 
 ```bash
-cat targets | airixss -payload "alert(1)"
+cat targets | airixss -payload '"><svg onload=confirm(1)>'
 ```
 
 ### Adding Headers
