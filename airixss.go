@@ -10,9 +10,6 @@ import (
         "net/http"
         "net/url"
         "os"
-        //"context"
-        //"github.com/chromedp/cdproto/page"
-        //"github.com/chromedp/chromedp"
         "strings"
 	"regexp"
         "sync"
@@ -31,7 +28,6 @@ func init() {
                         "|       -c                    Set Concurrency, Default: 50",
                         "|       -x, --proxy,          Send traffic to a proxy",
                         "|       -s, --only-poc        Show only potentially vulnerable urls",
-                        "|       -hm, --headless-mode  Headless mode ( experimental ) please check readme",
                         "|       -h                    Show This Help Message",
                         "|",
                         "+====================================================================================+",
