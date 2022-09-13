@@ -149,9 +149,6 @@ func xss(urlt string, xssp string, proxy string, onlypoc bool) string {
         client := &http.Client{
                 Transport: trans,
                 Timeout:   3 * time.Second,
-                CheckRedirect: func(req *http.Request, via []*http.Request) error {
-                        return http.ErrUseLastResponse
-                                },
         }
 
         _, errx := url.Parse(urlt)
@@ -248,9 +245,6 @@ func xssDefault(urlt string, xssp string, proxy string, onlypoc bool) string {
         client := &http.Client{
                 Transport: trans,
                 Timeout:   3 * time.Second,
-                CheckRedirect: func(req *http.Request, via []*http.Request) error {
-                        return http.ErrUseLastResponse
-                                },
         }
         //fmt.Println("TESTT")
         u, errx := url.Parse(urlt)
